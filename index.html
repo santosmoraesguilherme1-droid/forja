@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- PWA -->
+  <meta name="theme-color" content="#070A0F" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>FORJA — Missões</title>
+  <style>
+    :root{
+      --bg:#070A0F;
+      --panel:#0C1220;
+      --panel2:#0F1930;
+      --text:#E6EAF2;
+      --muted:#A9B3C6;
+      --line:rgba(255,255,255,.08);
+      --ember:#FF7A18;
+      --ember2:#FFB020;
+      --steel:#5B6B8A;
+      --good:#2EE59D;
+      --bad:#FF4D6D;
+      --blue:#4C8DFF;
+      --shadow: 0 12px 40px rgba(0,0,0,.55);
+      --radius: 18px;
+      --radius2: 14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 25% 10%, rgba(255,122,24,.18), transparent 60%),
+        radial-gradient(1100px 650px at 80% 20%, rgba(76,141,255,.14), transparent 60%),
+        radial-gradient(900px 520px at 60% 90%, rgba(46,229,157,.08), transparent 60%),
+        linear-gradient(180deg, #05060B, var(--bg));
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 16px 60px}
+
+    /* Top bar */
+    .top{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position:sticky;top:12px;backdrop-filter: blur(10px);
+      z-index:10;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .sigil{
+      width:40px;height:40px;border-radius:14px;
+      background:
+        radial-gradient(10px 10px at 30% 30%, rgba(255,255,255,.55), transparent 55%),
+        radial-gradient(18px 18px at 70% 40%, rgba(255,176,32,.45), transparent 60%),
+        radial-gradient(18px 18px at 45% 75%, rgba(255,122,24,.35), transparent 60%),
+        linear-gradient(140deg, rgba(255,122,24,.95), rgba(76,141,255,.65));
+      box-shadow: 0 10px 25px rgba(255,122,24,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      display:grid;place-items:center;
+      position:relative;
+    }
+    .sigil:after{
+      content:"";
+      position:absolute;inset:-1px;
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.16), transparent);
+      pointer-events:none;
+    }
+    .brand h1{font-size:14px;letter-spacing:.14em;margin:0;text-transform:uppercase}
+    .brand small{display:block;color:var(--muted);margin-top:2px;letter-spacing:.06em}
+
+    .top .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .chip{
+      display:flex;align-items:center;gap:8px;
+      border:1px solid var(--line);
+      background: rgba(12,18,32,.6);
+      padding:8px 10px;
+      border-radius: 999px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .chip strong{color:var(--text);font-weight:700}
+
+    .btn{
+      appearance:none;border:1px solid var(--line);
+      background: rgba(12,18,32,.65);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      transition:.15s transform, .15s background, .15s border;
+      font-weight:650;
+      letter-spacing:.02em;
+    }
+    .btn:hover{transform: translateY(-1px);border-color: rgba(255,255,255,.16);background: rgba(12,18,32,.8)}
+    .btn:active{transform: translateY(0px)}
+    .btn.primary{
+      border-color: rgba(255,122,24,.35);
+      background: linear-gradient(180deg, rgba(255,122,24,.22), rgba(255,122,24,.08));
+    }
+
+    /* Layout */
+    .grid{display:grid;grid-template-columns: 1.25fr .75fr;gap:14px;margin-top:14px}
+    @media (max-width: 940px){ .grid{grid-template-columns:1fr} .top{position:relative;top:0} }
+
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:14px;
+      overflow:hidden;
+      position:relative;
+    }
+    .card:before{
+      content:"";
+      position:absolute;inset:-1px;
+      border-radius: var(--radius);
+      background: radial-gradient(600px 200px at 20% 0%, rgba(255,122,24,.18), transparent 55%),
+                  radial-gradient(500px 180px at 85% 15%, rgba(76,141,255,.12), transparent 55%);
+      pointer-events:none;
+      opacity:.75;
+    }
+    .card > *{position:relative}
+
+    .sectionTitle{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .sectionTitle h2{margin:0;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+    .sectionTitle .meta{color:var(--muted);font-size:12px}
+
+    /* Progress */
+    .bar{
+      width:100%;height:12px;border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;height:100%;width:0%;
+      background: linear-gradient(90deg, rgba(255,122,24,.95), rgba(255,176,32,.9));
+      box-shadow: 0 0 22px rgba(255,122,24,.25);
+      border-radius:999px;
+      transition: width .35s ease;
+    }
+
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+    @media (max-width: 740px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+
+    .kpi{
+      padding:12px;border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: rgba(15,25,48,.45);
+    }
+    .kpi .label{color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+    .kpi .value{font-size:18px;font-weight:800;margin-top:6px}
+    .kpi .sub{color:var(--muted);font-size:12px;margin-top:4px}
+
+    /* Missions */
+    .missions{display:flex;flex-direction:column;gap:10px}
+    .mission{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      padding:12px;
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: rgba(12,18,32,.55);
+    }
+    .mission .name{display:flex;align-items:center;gap:10px;font-weight:750}
+    .badge{
+      font-size:12px;color:rgba(255,255,255,.85);
+      padding:5px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      letter-spacing:.02em;
+    }
+    .mission .desc{margin-top:6px;color:var(--muted);font-size:12px}
+
+    .toggle{
+      display:flex;align-items:center;gap:10px;
+      justify-content:flex-end;
+    }
+    .switch{position:relative;width:52px;height:30px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{
+      position:absolute;inset:0;border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      transition:.2s;
+      cursor:pointer;
+    }
+    .slider:before{
+      content:"";
+      position:absolute;width:24px;height:24px;left:3px;top:50%;transform: translateY(-50%);
+      border-radius:999px;
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 10px 20px rgba(0,0,0,.45);
+      transition:.2s;
+    }
+    .switch input:checked + .slider{
+      background: rgba(46,229,157,.16);
+      border-color: rgba(46,229,157,.35);
+    }
+    .switch input:checked + .slider:before{left:25px;background: rgba(46,229,157,.95)}
+
+    .miniRow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+
+    /* Right column */
+    .forgePanel{
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .level{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px;
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: rgba(15,25,48,.45);
+    }
+    .level .left{display:flex;flex-direction:column;gap:3px}
+    .level .tag{color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+    .level .rank{font-size:16px;font-weight:850}
+
+    .streak{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px;
+      border-radius: var(--radius2);
+      border:1px solid var(--line);
+      background: rgba(12,18,32,.55);
+    }
+    .flames{letter-spacing:2px}
+
+    /* History */
+    .historyControls{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:8px}
+    label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+    input[type="date"], select{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(12,18,32,.55);
+      color:var(--text);
+      padding:10px 10px;
+      border-radius: 12px;
+      outline:none;
+    }
+
+    table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:10px}
+    th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px}
+    td{padding:10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background: rgba(12,18,32,.55)}
+    tr td:first-child{border-left:1px solid var(--line);border-top-left-radius:12px;border-bottom-left-radius:12px}
+    tr td:last-child{border-right:1px solid var(--line);border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background: rgba(255,255,255,.06);font-size:12px}
+    .pill.good{border-color: rgba(46,229,157,.35);background: rgba(46,229,157,.12)}
+    .pill.bad{border-color: rgba(255,77,109,.35);background: rgba(255,77,109,.12)}
+
+    /* Canvas chart */
+    .chartWrap{margin-top:10px;padding:12px;border-radius: var(--radius2);border:1px solid var(--line);background: rgba(12,18,32,.55)}
+    canvas{width:100%;height:170px;display:block}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.35}
+
+    /* Toast */
+    .toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      padding:10px 12px;border-radius:999px;
+      background: rgba(12,18,32,.86);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      color:var(--text);
+      font-size:12px;
+      opacity:0;pointer-events:none;
+      transition:.25s;
+      z-index:50;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+    .muted{color:var(--muted)}
+    .sep{height:1px;background: var(--line);margin:10px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="sigil" aria-hidden="true">🔥</div>
+        <div>
+          <h1>FORJA</h1>
+          <small id="todayLabel">Missões diárias</small>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="chip"><span>⚔️</span><strong id="levelName">Iniciante</strong></div>
+        <div class="chip"><span>🔥</span><strong id="streakNum">0</strong><span class="muted">streak</span></div>
+        <button class="btn" id="installBtn" style="display:none">Instalar</button>
+        <button class="btn" id="exportBtn">Exportar JSON</button>
+        <button class="btn" id="importBtn">Importar</button>
+        <button class="btn primary" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: missions + overview + history -->
+      <div>
+        <div class="card">
+          <div class="sectionTitle">
+            <h2>Hoje</h2>
+            <div class="meta"><span id="datePretty"></span> • <span id="dailyXP">0</span> XP</div>
+          </div>
+
+          <div class="bar" title="Progresso do dia">
+            <i id="dayBar"></i>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Conclusão hoje</div>
+              <div class="value" id="todayPct">0%</div>
+              <div class="sub" id="todayDone">0/4 missões</div>
+            </div>
+            <div class="kpi">
+              <div class="label">7 dias</div>
+              <div class="value" id="avg7">0%</div>
+              <div class="sub" id="sub7">média</div>
+            </div>
+            <div class="kpi">
+              <div class="label">30 dias</div>
+              <div class="value" id="avg30">0%</div>
+              <div class="sub" id="sub30">média</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Total XP</div>
+              <div class="value" id="totalXP">0</div>
+              <div class="sub" id="levelProgress">0 / 500</div>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="sectionTitle">
+            <h2>Missões</h2>
+            <div class="meta">marque feito / não feito</div>
+          </div>
+
+          <div class="missions" id="missions"></div>
+
+          <div class="hint">Regra de streak: manter <strong>3/4</strong> missões no dia. Se fizer menos que 3, zera.</div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="sectionTitle">
+            <h2>Progresso</h2>
+            <div class="meta">últimos 31 dias</div>
+          </div>
+          <div class="chartWrap">
+            <canvas id="chart" width="1000" height="300"></canvas>
+            <div class="hint">Linha mostra a % de conclusão diária (0% a 100%).</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="sectionTitle">
+            <h2>Histórico</h2>
+            <div class="meta">relatório por datas</div>
+          </div>
+
+          <div class="historyControls">
+            <div>
+              <label>De</label>
+              <input type="date" id="fromDate" />
+            </div>
+            <div>
+              <label>Até</label>
+              <input type="date" id="toDate" />
+            </div>
+            <div>
+              <label>Filtro</label>
+              <select id="filter">
+                <option value="all">Tudo</option>
+                <option value="perfect">100% (4/4)</option>
+                <option value="streak">Streak (>=3/4)</option>
+                <option value="low">Baixo (&lt;3/4)</option>
+              </select>
+            </div>
+            <button class="btn" id="applyBtn">Aplicar</button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Resultado</th>
+                <th>XP</th>
+                <th>Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: forge panel -->
+      <div class="forgePanel">
+        <div class="card">
+          <div class="sectionTitle">
+            <h2>Perfil da Forja</h2>
+            <div class="meta">seu status</div>
+          </div>
+
+          <div class="level">
+            <div class="left">
+              <div class="tag">Nível atual</div>
+              <div class="rank" id="rankText">🪵 Iniciante</div>
+              <div class="muted" id="rankRange">0–500 XP</div>
+            </div>
+            <div class="badge" id="xpBadge">0 XP</div>
+          </div>
+
+          <div class="miniRow">
+            <div class="muted">Barra de XP</div>
+            <div class="muted" id="xpToNext">Faltam 500 XP</div>
+          </div>
+          <div class="bar" title="XP">
+            <i id="xpBar"></i>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="streak">
+            <div>
+              <div class="tag">Streak</div>
+              <div style="font-weight:850;font-size:16px"><span id="streakBig">0</span> dias</div>
+              <div class="muted">dias seguidos com 3/4+</div>
+            </div>
+            <div class="flames" id="flames">—</div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="sectionTitle" style="margin-bottom:6px">
+            <h2>Config</h2>
+            <div class="meta">personalize</div>
+          </div>
+          <div class="hint" style="margin-top:0">
+            Você pode editar os nomes/ícones das missões dentro do código (array <code>TASKS</code>).
+            Se quiser, eu adapto com mais “cara de Forja” (ícones, paleta, conquistas).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">Salvo.</div>
+  </div>
+
+  <input type="file" id="file" accept="application/json" style="display:none" />
+
+  <script>
+    // =====================
+    // FORJA — Mini App (LocalStorage)
+    // =====================
+
+    const TASKS = [
+      { key: 'muay', name: 'Treino de Combate', icon: '🥊', subtitle: 'Muay Thai', xp: 25 },
+      { key: 'biblia', name: 'Sabedoria Ancestral', icon: '📖', subtitle: 'Ler a Bíblia', xp: 25 },
+      { key: 'prog', name: 'Forja da Técnica', icon: '💻', subtitle: 'Estudar Programação', xp: 25 },
+      { key: 'estudar', name: 'Expansão Mental', icon: '🧠', subtitle: 'Estudar', xp: 25 },
+    ];
+
+    const LEVELS = [
+      { name: '🪵 Iniciante', min: 0, max: 500 },
+      { name: '⚔️ Guerreiro', min: 500, max: 1500 },
+      { name: '🛡️ Veterano', min: 1500, max: 3000 },
+      { name: '🔥 Forjado', min: 3000, max: 6000 },
+      { name: '👑 Lendário', min: 6000, max: 999999 },
+    ];
+
+    const STREAK_MIN_DONE = 3; // 3/4 para manter streak
+    const STORE_KEY = 'forja_v1';
+
+    const $ = (id) => document.getElementById(id);
+
+    function isoDate(d){
+      const z = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+      return z.toISOString().slice(0,10);
+    }
+
+    function prettyDate(d){
+      return d.toLocaleDateString('pt-BR', { weekday:'short', day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function loadStore(){
+      try{
+        const raw = localStorage.getItem(STORE_KEY);
+        if(!raw) return { days: {} };
+        const parsed = JSON.parse(raw);
+        if(!parsed.days) parsed.days = {};
+        return parsed;
+      }catch{ return { days: {} }; }
+    }
+
+    function saveStore(store){
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      toast('Salvo na forja.');
+    }
+
+    function toast(msg){
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window.__toast);
+      window.__toast = setTimeout(()=>t.classList.remove('show'), 1400);
+    }
+
+    function getDay(store, dateStr){
+      if(!store.days[dateStr]){
+        store.days[dateStr] = { tasks: {}, note: '' };
+        TASKS.forEach(t => store.days[dateStr].tasks[t.key] = 0);
+      }else{
+        // ensure any new task exists
+        TASKS.forEach(t => { if(typeof store.days[dateStr].tasks[t.key] !== 'number') store.days[dateStr].tasks[t.key] = 0; });
+      }
+      return store.days[dateStr];
+    }
+
+    function dayDoneCount(day){
+      return TASKS.reduce((acc,t)=>acc + (day.tasks[t.key] ? 1 : 0), 0);
+    }
+
+    function dayPct(done){
+      return TASKS.length ? Math.round((done / TASKS.length) * 100) : 0;
+    }
+
+    function dayXP(day){
+      return TASKS.reduce((acc,t)=>acc + (day.tasks[t.key] ? t.xp : 0), 0);
+    }
+
+    function sumXP(store){
+      let total = 0;
+      for(const k in store.days){ total += dayXP(getDay(store,k)); }
+      return total;
+    }
+
+    function streak(store, upToDateStr){
+      // count consecutive streak days ending at upToDateStr
+      let s = 0;
+      let d = new Date(upToDateStr + 'T00:00:00');
+      while(true){
+        const key = isoDate(d);
+        const day = store.days[key];
+        if(!day) break;
+        const done = dayDoneCount(day);
+        if(done < STREAK_MIN_DONE) break;
+        s += 1;
+        d.setDate(d.getDate() - 1);
+      }
+      return s;
+    }
+
+    function avgPct(store, daysBack){
+      const today = new Date();
+      let sum = 0, n = 0;
+      for(let i=0;i<daysBack;i++){
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = isoDate(d);
+        const day = store.days[key];
+        if(day){
+          const done = dayDoneCount(day);
+          sum += dayPct(done);
+          n += 1;
+        }
+      }
+      return n ? Math.round(sum/n) : 0;
+    }
+
+    function getLevel(total){
+      for(const L of LEVELS){ if(total >= L.min && total < L.max) return L; }
+      return LEVELS[LEVELS.length-1];
+    }
+
+    function renderMissions(store, todayKey){
+      const root = $('missions');
+      root.innerHTML = '';
+      const day = getDay(store, todayKey);
+
+      TASKS.forEach(t => {
+        const wrap = document.createElement('div');
+        wrap.className = 'mission';
+
+        const left = document.createElement('div');
+        left.innerHTML = `
+          <div class="name">
+            <span style="font-size:18px">${t.icon}</span>
+            <div>
+              <div>${t.name} <span class="badge">+${t.xp} XP</span></div>
+              <div class="desc">${t.subtitle}</div>
+            </div>
+          </div>
+        `;
+
+        const right = document.createElement('div');
+        right.className = 'toggle';
+        const id = `sw_${t.key}`;
+        right.innerHTML = `
+          <span class="muted" style="font-size:12px">${day.tasks[t.key] ? 'feito' : 'pendente'}</span>
+          <label class="switch" aria-label="${t.name}">
+            <input type="checkbox" id="${id}" ${day.tasks[t.key] ? 'checked' : ''} />
+            <span class="slider"></span>
+          </label>
+        `;
+
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        root.appendChild(wrap);
+
+        const input = wrap.querySelector(`#${id}`);
+        const label = wrap.querySelector('.toggle span');
+        input.addEventListener('change', () => {
+          day.tasks[t.key] = input.checked ? 1 : 0;
+          label.textContent = input.checked ? 'feito' : 'pendente';
+          saveStore(store);
+          renderAll();
+        });
+      });
+    }
+
+    function renderHistory(store){
+      const body = $('historyBody');
+      body.innerHTML = '';
+
+      const from = $('fromDate').value;
+      const to = $('toDate').value;
+      const filter = $('filter').value;
+
+      const keys = Object.keys(store.days).sort().reverse();
+
+      const rows = [];
+      for(const k of keys){
+        if(from && k < from) continue;
+        if(to && k > to) continue;
+        const day = store.days[k];
+        const done = dayDoneCount(day);
+        const pct = dayPct(done);
+        const xp = dayXP(day);
+
+        const isStreak = done >= STREAK_MIN_DONE;
+        const isPerfect = done === TASKS.length;
+
+        if(filter === 'perfect' && !isPerfect) continue;
+        if(filter === 'streak' && !isStreak) continue;
+        if(filter === 'low' && isStreak) continue;
+
+        rows.push({ k, done, pct, xp, isStreak, isPerfect });
+      }
+
+      if(!rows.length){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="4" class="muted" style="padding:16px">Nada neste período. Marque missões e volte aqui.</td>`;
+        body.appendChild(tr);
+        return;
+      }
+
+      for(const r of rows.slice(0, 60)){
+        const d = new Date(r.k + 'T00:00:00');
+        const pillClass = r.isStreak ? 'good' : 'bad';
+        const pillText = r.isPerfect ? 'PERFEITO (4/4)' : (r.isStreak ? 'STREAK (3/4+)' : 'BAIXO (<3/4)');
+
+        const tasksStr = TASKS.map(t => {
+          const v = store.days[r.k].tasks[t.key] ? '✅' : '—';
+          return `${t.icon} ${v}`;
+        }).join('  ');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div style="font-weight:750">${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})}</div><div class="muted" style="font-size:12px">${d.toLocaleDateString('pt-BR',{weekday:'short'})}</div></td>
+          <td><span class="pill ${pillClass}">${pillText}</span> <span class="muted">${r.pct}%</span></td>
+          <td><span class="pill">${r.xp} XP</span></td>
+          <td class="muted" style="font-size:12px">${tasksStr}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function drawChart(store){
+      const c = $('chart');
+      const ctx = c.getContext('2d');
+      const W = c.width, H = c.height;
+      ctx.clearRect(0,0,W,H);
+
+      // Gather last 31 days
+      const today = new Date();
+      const pts = [];
+      for(let i=30;i>=0;i--){
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = isoDate(d);
+        const day = store.days[key];
+        const pct = day ? dayPct(dayDoneCount(day)) : 0;
+        pts.push({ key, pct });
+      }
+
+      // Padding
+      const pad = { l:40, r:16, t:16, b:34 };
+      const x0 = pad.l, y0 = pad.t, x1 = W-pad.r, y1 = H-pad.b;
+
+      // Background grid
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,.10)';
+      ctx.lineWidth = 1;
+
+      for(let i=0;i<=4;i++){
+        const y = y0 + (i/4)*(y1-y0);
+        ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke();
+        const label = 100 - i*25;
+        ctx.fillStyle = 'rgba(233,238,248,.55)';
+        ctx.font = '12px system-ui';
+        ctx.fillText(label+'%', 6, y+4);
+      }
+
+      // X labels (every 7 days)
+      for(let i=0;i<pts.length;i++){
+        if(i%7!==0 && i!==pts.length-1) continue;
+        const x = x0 + (i/(pts.length-1))*(x1-x0);
+        ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x,y1); ctx.stroke();
+        const d = new Date(pts[i].key+'T00:00:00');
+        const lab = d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+        ctx.fillStyle = 'rgba(233,238,248,.55)';
+        ctx.fillText(lab, x-16, H-10);
+      }
+
+      // Line
+      const toXY = (i, pct) => {
+        const x = x0 + (i/(pts.length-1))*(x1-x0);
+        const y = y0 + ((100-pct)/100)*(y1-y0);
+        return {x,y};
+      };
+
+      // Glow
+      ctx.strokeStyle = 'rgba(255,122,24,.35)';
+      ctx.lineWidth = 6;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      pts.forEach((p,i)=>{
+        const {x,y} = toXY(i,p.pct);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // Main stroke
+      const grad = ctx.createLinearGradient(x0,y0,x1,y0);
+      grad.addColorStop(0,'rgba(255,122,24,.95)');
+      grad.addColorStop(1,'rgba(76,141,255,.90)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      pts.forEach((p,i)=>{
+        const {x,y} = toXY(i,p.pct);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // Dots for last point
+      const last = pts[pts.length-1];
+      const L = toXY(pts.length-1, last.pct);
+      ctx.fillStyle = 'rgba(255,176,32,.95)';
+      ctx.beginPath(); ctx.arc(L.x, L.y, 5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.beginPath(); ctx.arc(L.x, L.y, 2.2, 0, Math.PI*2); ctx.fill();
+    }
+
+    function renderStats(store, todayKey){
+      const day = getDay(store, todayKey);
+      const done = dayDoneCount(day);
+      const pct = dayPct(done);
+      const xp = dayXP(day);
+
+      $('todayPct').textContent = pct + '%';
+      $('todayDone').textContent = `${done}/${TASKS.length} missões`;
+      $('dailyXP').textContent = xp;
+      $('dayBar').style.width = pct + '%';
+
+      const a7 = avgPct(store, 7);
+      const a30 = avgPct(store, 30);
+      $('avg7').textContent = a7 + '%';
+      $('avg30').textContent = a30 + '%';
+      $('sub7').textContent = 'média (dias marcados)';
+      $('sub30').textContent = 'média (dias marcados)';
+
+      const total = sumXP(store);
+      $('totalXP').textContent = total;
+      $('xpBadge').textContent = `${total} XP`;
+
+      const L = getLevel(total);
+      $('levelName').textContent = L.name.replace(/^[^ ]+\s/, '');
+      $('rankText').textContent = L.name;
+      $('rankRange').textContent = `${L.min.toLocaleString('pt-BR')}–${(L.max===999999?'∞':L.max.toLocaleString('pt-BR'))} XP`;
+
+      const next = LEVELS.find(x => x.min > L.min) || null;
+      const toNext = (L.max===999999) ? 0 : Math.max(0, L.max - total);
+      $('xpToNext').textContent = (L.max===999999) ? 'No topo da forja.' : `Faltam ${toNext.toLocaleString('pt-BR')} XP`;
+
+      const span = (L.max===999999) ? 1 : (L.max - L.min);
+      const prog = (L.max===999999) ? 1 : Math.min(1, (total - L.min)/span);
+      $('xpBar').style.width = Math.round(prog*100) + '%';
+      $('levelProgress').textContent = (L.max===999999)
+        ? `${total.toLocaleString('pt-BR')} / ∞`
+        : `${total.toLocaleString('pt-BR')} / ${L.max.toLocaleString('pt-BR')}`;
+
+      // streak
+      const s = streak(store, todayKey);
+      $('streakNum').textContent = s;
+      $('streakBig').textContent = s;
+      const flames = s ? '🔥'.repeat(Math.min(10,s)) + (s>10?'…':'') : '—';
+      $('flames').textContent = flames;
+
+      // top labels
+      $('todayLabel').textContent = `Missões diárias • ${todayKey}`;
+      $('datePretty').textContent = prettyDate(new Date(todayKey+'T00:00:00'));
+    }
+
+    function setDefaultHistoryRange(){
+      const to = isoDate(new Date());
+      const fromD = new Date();
+      fromD.setDate(fromD.getDate()-30);
+      const from = isoDate(fromD);
+      $('fromDate').value = from;
+      $('toDate').value = to;
+    }
+
+    function exportJSON(){
+      const store = loadStore();
+      const blob = new Blob([JSON.stringify(store, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `forja-backup-${isoDate(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('Backup exportado.');
+    }
+
+    function importJSON(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const data = JSON.parse(reader.result);
+          if(!data.days) throw new Error('Formato inválido');
+          localStorage.setItem(STORE_KEY, JSON.stringify(data));
+          toast('Importado com sucesso.');
+          renderAll();
+        }catch(e){
+          toast('Falha ao importar.');
+          console.error(e);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAll(){
+      if(!confirm('Resetar tudo? Isso apaga seu histórico.')) return;
+      localStorage.removeItem(STORE_KEY);
+      toast('Forja zerada.');
+      renderAll();
+    }
+
+    function renderAll(){
+      const store = loadStore();
+      const todayKey = isoDate(new Date());
+      getDay(store, todayKey); // ensure today exists
+
+      renderMissions(store, todayKey);
+      renderStats(store, todayKey);
+      drawChart(store);
+      renderHistory(store);
+
+      // persist any auto-created day
+      localStorage.setItem(STORE_KEY, JSON.stringify(store));
+    }
+
+    // Wire events
+    // PWA: install prompt
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = $('installBtn');
+      btn.style.display = 'inline-block';
+      btn.addEventListener('click', async () => {
+        btn.style.display = 'none';
+        if(!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }, { once:true });
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      toast('Instalado. Bem-vindo à Forja.');
+    });
+
+    // PWA: service worker
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setDefaultHistoryRange();
+      $('applyBtn').addEventListener('click', () => renderAll());
+      $('exportBtn').addEventListener('click', exportJSON);
+      $('importBtn').addEventListener('click', () => $('file').click());
+      $('file').addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0];
+        if(f) importJSON(f);
+        e.target.value = '';
+      });
+      $('resetBtn').addEventListener('click', resetAll);
+      renderAll();
+    });
+  </script>
+</body>
+</html>
